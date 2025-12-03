@@ -38,11 +38,11 @@ ALLOWED_EXTENSIONS = {'pdf', 'txt'}
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # GigaChat Authorization Key - ПОЛУЧАЕМ ИЗ .env или используем значение по умолчанию
-GIGACHAT_AUTH_KEY = os.getenv('GIGACHAT_AUTH_KEY', 'ENTER_KEY')
+GIGACHAT_AUTH_KEY = os.getenv('GIGACHAT_AUTH_KEY', 'YOUR_KEY')
 
 if not GIGACHAT_AUTH_KEY or GIGACHAT_AUTH_KEY == 'YOUR_GIGACHAT_AUTH_KEY_HERE':
     print("⚠️  ВНИМАНИЕ: Используется значение GIGACHAT_AUTH_KEY по умолчанию!")
-    GIGACHAT_AUTH_KEY = 'ENTER_KEY'
+    GIGACHAT_AUTH_KEY = 'YOUR_KEY'
 else:
     print("✅ GigaChat Auth Key: успешно загружен из .env")
 
@@ -150,7 +150,7 @@ def health_check():
         "service": "Article Processing API",
         "version": "1.0",
         "timestamp": datetime.now().isoformat(),
-        "gigachat_configured": GIGACHAT_AUTH_KEY == 'ENTER_KEY'
+        "gigachat_configured": GIGACHAT_AUTH_KEY == 'YOUR_KEY'
     }), 200
 
 
@@ -302,7 +302,6 @@ def process_article():
                 "keywords": final_state.get("rubric_result_keyword", "").strip(),
                 "normalization": final_state.get("rubric_result_normal", "").strip(),
                 "summary": final_state.get("rubric_result_summariser", "").strip(),
-                "critique": final_state.get("rubric_result_kritik", "").strip()
             },
             "metadata": {
                 "text_length": len(article_text),
@@ -335,7 +334,7 @@ def status():
         "server_status": "running",
         "uploads_folder": UPLOAD_FOLDER,
         "upload_count": len(os.listdir(UPLOAD_FOLDER)),
-        "gigachat_available": GIGACHAT_AUTH_KEY == 'ENTER_KEY',
+        "gigachat_available": GIGACHAT_AUTH_KEY == 'YOUR_KEY',
         "timestamp": datetime.now().isoformat()
     }), 200
 
@@ -377,7 +376,7 @@ if __name__ == '__main__':
     print("=" * 80)
     print(f"📍 Адрес: http://localhost:5001")
     print(
-        f"📝 GigaChat Auth Key: {'✅ Установлен' if GIGACHAT_AUTH_KEY == 'ENTER_KEY' else '⚠️  ИСПОЛЬЗУЕТСЯ ЗНАЧЕНИЕ ПО УМОЛЧАНИЮ'}")
+        f"📝 GigaChat Auth Key: {'✅ Установлен' if GIGACHAT_AUTH_KEY == 'YOUR_KEY' else '⚠️  ИСПОЛЬЗУЕТСЯ ЗНАЧЕНИЕ ПО УМОЛЧАНИЮ'}")
     print(f"📂 Папка загрузок: {UPLOAD_FOLDER}")
     print("=" * 80 + "\n")
 

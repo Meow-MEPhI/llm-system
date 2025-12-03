@@ -1,0 +1,9 @@
+fastapi==0.115.2
+uvicorn[standard]==0.30.6
+pydantic==2.12.3
+pydantic-settings
+python-multipart
+PyPDF2
+
+langchain==1.0.2
+langchain-openai==1.0.1

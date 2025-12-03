@@ -7,20 +7,43 @@ import operator
 import os
 
 # Исправленные импорты - относительные пути
-from .agent_bibliographer import BibliographerAgent
+# from .agent_bibliographer import BibliographerAgent
 from .agent_rubricator import RubricatorAgent
 from .agent_keyword import KeywordAgent
 from .agent_summariser import SummariserAgent
 from .agent_normal import NormalAgent
 from .rubricator_critic import CriticAgent
+from .keyword_critic import CriticKeywordAgent
+from .summariser_critic import CriticSumAgent
+from .normal_critic import CriticNormalAgent
 
 
 def should_continue_or_revise(state: dict) -> Literal["continue", "revise", "max_retries"]:
     """Решает, продолжать дальше или вернуться на переделку."""
 
     # Проверяем счетчик попыток
-    revision_count = state.get("revision_count", 0)
-    MAX_REVISIONS = 10
+    try:
+        revision_count = state.get("revision_count", 0)
+    except:
+        pass
+
+    try:
+        revision_count = state.get("revision_count_key", 0)
+    except:
+        pass
+
+    try:
+        revision_count = state.get("revision_count_sum", 0)
+    except:
+        pass
+
+    try:
+        revision_count = state.get("revision_count_nor", 0)
+    except:
+        pass
+
+
+    MAX_REVISIONS = 1
 
     if revision_count >= MAX_REVISIONS:
         return "max_retries"
@@ -44,21 +67,29 @@ def saferun(func, state: dict):
             return func(state)
         except Exception as e:
             print(f"⚠️  Ошибка в saferun: {e}")
+            print(func)
             continue
 
 
 # Определяем состояние графа
 class GraphState(TypedDict):
     """Общее состояние для всех узлов графа."""
-    article_url: str
     article_text: str
+
     rubric_result_keyword: str
     rubric_result_rubricator: str
-    rubric_result_kritik: str
     rubric_result_normal: str
     rubric_result_summariser: str
+
     critique: str
+    critique_key: str
+    critique_sum: str
+    critique_nor: str
+
     revision_count: int
+    revision_count_key: int
+    revision_count_sum: int
+    revision_count_nor: int
     status: Annotated[List[str], operator.add]
 
 
@@ -69,8 +100,6 @@ def create_multi_agent_graph(auth_key: str):
 
     # Инициализируем агентов с ключом GigaChat
     try:
-        bibliographer = BibliographerAgent(auth_key=auth_key)
-        print("✅ BibliographerAgent инициализирован")
 
         rubricator = RubricatorAgent(auth_key=auth_key)
         print("✅ RubricatorAgent инициализирован")
@@ -87,6 +116,15 @@ def create_multi_agent_graph(auth_key: str):
         critic_r = CriticAgent(auth_key=auth_key)
         print("✅ CriticAgent инициализирован")
 
+        critic_k = CriticKeywordAgent(auth_key=auth_key)
+        print("✅ Critic2Agent инициализирован")
+
+        critic_sum = CriticSumAgent(auth_key=auth_key)
+        print("✅ CriticSumAgent инициализирован")
+
+        critic_nor = CriticNormalAgent(auth_key=auth_key)
+        print("✅ CriticNormalAgent инициализирован")
+
     except Exception as e:
         print(f"❌ Ошибка инициализации агентов: {e}")
         raise
@@ -95,39 +133,68 @@ def create_multi_agent_graph(auth_key: str):
     workflow = StateGraph(GraphState)
 
     # Добавляем узлы (агентов) в граф
-    workflow.add_node("bibliographer", lambda state: saferun(bibliographer.run, state))
+    # workflow.add_node("bibliographer", lambda state: saferun(bibliographer.run, state))
     workflow.add_node("rubricator", lambda state: saferun(rubricator.run, state))
     workflow.add_node("critic_r", lambda state: saferun(critic_r.run, state))
     workflow.add_node("keyword", lambda state: saferun(keyword.run, state))
+    workflow.add_node("critic_k", lambda state: saferun(critic_k.run, state))
     workflow.add_node("normal", lambda state: saferun(normal.run, state))
+    workflow.add_node("critic_nor", lambda state: saferun(critic_nor.run, state))
     workflow.add_node("summariser", lambda state: saferun(summariser.run, state))
+    workflow.add_node("critic_sum", lambda state: saferun(critic_sum.run, state))
 
     # Определяем последовательность выполнения
-    workflow.add_edge(START, "bibliographer")
-    workflow.add_edge("bibliographer", "rubricator")
+    # workflow.add_edge(START, "bibliographer")
+    workflow.add_edge(START, "rubricator")
     workflow.add_edge("rubricator", "critic_r")
-
-    # Условный переход после критика
     workflow.add_conditional_edges(
         "critic_r",
         should_continue_or_revise,
         {
             "revise": "rubricator",  # Возврат на переделку
-            "continue": "keyword",  # Переход к следующему агенту
-            "max_retries": "keyword"  # Если превышен лимит, идём дальше
+            "continue": END,  # Переход к следующему агенту
+            "max_retries": END  # Если превышен лимит, идём дальше
         }
     )
 
     # Параллельные пути от библиографа
-    workflow.add_edge("bibliographer", "keyword")
-    workflow.add_edge("bibliographer", "normal")
-    workflow.add_edge("bibliographer", "summariser")
+    workflow.add_edge(START, "keyword")
+    workflow.add_edge("keyword", "critic_k")
+    workflow.add_conditional_edges(
+        "critic_k",
+        should_continue_or_revise,
+        {
+            "revise": "keyword",  # Возврат на переделку
+            "continue": END,  # Переход к следующему агенту
+            "max_retries": END  # Если превышен лимит, идём дальше
+        }
+    )
 
-    # Завершение процесса
-    workflow.add_edge("normal", END)
-    workflow.add_edge("keyword", END)
-    workflow.add_edge("rubricator", END)
-    workflow.add_edge("summariser", END)
+    workflow.add_edge(START, "normal")
+    workflow.add_edge("normal", "critic_nor")
+    workflow.add_conditional_edges(
+        "critic_nor",
+        should_continue_or_revise,
+        {
+            "revise": "normal",  # Возврат на переделку
+            "continue": END,  # Переход к следующему агенту
+            "max_retries": END  # Если превышен лимит, идём дальше
+        }
+    )
+
+    workflow.add_edge(START, "summariser")
+    workflow.add_edge("summariser", "critic_sum")
+    workflow.add_conditional_edges(
+        "critic_sum",
+        should_continue_or_revise,
+        {
+            "revise": "summariser",  # Возврат на переделку
+            "continue": END,  # Переход к следующему агенту
+            "max_retries": END  # Если превышен лимит, идём дальше
+        }
+    )
+
+
 
     # Компилируем граф
     print("🔧 Компиляция графа...")
@@ -138,21 +205,26 @@ def create_multi_agent_graph(auth_key: str):
 
 
 if __name__ == "__main__":
-    AUTH_KEY = "ENTER_KEY"
-    ARTICLE_URL = "https://habr.com/ru/companies/spbifmo/articles/343320/"
-
+    AUTH_KEY = "YOUR_KEY"
+    
     graph = create_multi_agent_graph(AUTH_KEY)
 
     initial_state = {
-        "article_url": ARTICLE_URL,
-        "article_text": "Тестовый текст статьи...",
+        "article_text": "",
         "rubric_result_rubricator": "",
         "rubric_result_keyword": "",
         "rubric_result_normal": "",
         "rubric_result_summariser": "",
-        "rubric_result_kritik": "",
+
         "critique": "",
+        "critique_key": "",
+        "critique_sum": "",
+        "critique_normal": "",
+
         "revision_count": 0,
+        "revision_count_key": 0,
+        "revision_count_sum": 0,
+        "revision_count_nor": 0,
         "status": ["started"]
     }
 
@@ -173,3 +245,15 @@ if __name__ == "__main__":
     print("=" * 80)
     print(f"Рубрицирование:\n{final_state['rubric_result_rubricator']}\n")
     print(f"Количество ревизий: {final_state['revision_count']}")
+
+    print(f"Саммари:\n{final_state['rubric_result_summariser']}\n")
+    print(f"Количество ревизий: {final_state['revision_count_sum']}")
+
+    print("=" * 80)
+    print(f"нормализация:\n{final_state['rubric_result_normal']}\n")
+    print(f"Количество ревизий: {final_state['revision_count_nor']}")
+
+    print("=" * 80)
+    print(f"Суммаризация:\n{final_state['rubric_result_keyword']}\n")
+    print(f"Количество ревизий: {final_state['revision_count_key']}")
+
