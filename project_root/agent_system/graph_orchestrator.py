@@ -5,6 +5,7 @@ from langgraph.graph import StateGraph, START, END
 import time
 import operator
 import os
+from dotenv import load_dotenv
 
 # Исправленные импорты - относительные пути
 # from .agent_bibliographer import BibliographerAgent
@@ -16,6 +17,9 @@ from .rubricator_critic import CriticAgent
 from .keyword_critic import CriticKeywordAgent
 from .summariser_critic import CriticSumAgent
 from .normal_critic import CriticNormalAgent
+from .agent_indexer import IndexerAgent
+
+load_dotenv()
 
 
 def should_continue_or_revise(state: dict) -> Literal["continue", "revise", "max_retries"]:
@@ -63,7 +67,7 @@ def saferun(func, state: dict):
     """Безопасное выполнение функции агента с повторами."""
     while True:
         try:
-            time.sleep(1)
+            time.sleep(10)
             return func(state)
         except Exception as e:
             print(f"⚠️  Ошибка в saferun: {e}")
@@ -75,6 +79,8 @@ def saferun(func, state: dict):
 class GraphState(TypedDict):
     """Общее состояние для всех узлов графа."""
     article_text: str
+
+    indexed_data: str
 
     rubric_result_keyword: str
     rubric_result_rubricator: str
@@ -117,13 +123,17 @@ def create_multi_agent_graph(auth_key: str):
         print("✅ CriticAgent инициализирован")
 
         critic_k = CriticKeywordAgent(auth_key=auth_key)
-        print("✅ Critic2Agent инициализирован")
+        print("✅ CriticKeyAgent инициализирован")
 
         critic_sum = CriticSumAgent(auth_key=auth_key)
         print("✅ CriticSumAgent инициализирован")
 
         critic_nor = CriticNormalAgent(auth_key=auth_key)
         print("✅ CriticNormalAgent инициализирован")
+
+        indexer = IndexerAgent()
+        print("✅ IndexerAgent инициализирован")
+
 
     except Exception as e:
         print(f"❌ Ошибка инициализации агентов: {e}")
@@ -142,6 +152,7 @@ def create_multi_agent_graph(auth_key: str):
     workflow.add_node("critic_nor", lambda state: saferun(critic_nor.run, state))
     workflow.add_node("summariser", lambda state: saferun(summariser.run, state))
     workflow.add_node("critic_sum", lambda state: saferun(critic_sum.run, state))
+    workflow.add_node("indexer", lambda state: saferun(indexer.run, state))
 
     # Определяем последовательность выполнения
     # workflow.add_edge(START, "bibliographer")
@@ -152,8 +163,8 @@ def create_multi_agent_graph(auth_key: str):
         should_continue_or_revise,
         {
             "revise": "rubricator",  # Возврат на переделку
-            "continue": END,  # Переход к следующему агенту
-            "max_retries": END  # Если превышен лимит, идём дальше
+            "continue": "indexer",  # Переход к следующему агенту
+            "max_retries": "indexer"  # Если превышен лимит, идём дальше
         }
     )
 
@@ -165,8 +176,8 @@ def create_multi_agent_graph(auth_key: str):
         should_continue_or_revise,
         {
             "revise": "keyword",  # Возврат на переделку
-            "continue": END,  # Переход к следующему агенту
-            "max_retries": END  # Если превышен лимит, идём дальше
+            "continue": "indexer",  # Переход к следующему агенту
+            "max_retries": "indexer"  # Если превышен лимит, идём дальше
         }
     )
 
@@ -177,8 +188,8 @@ def create_multi_agent_graph(auth_key: str):
         should_continue_or_revise,
         {
             "revise": "normal",  # Возврат на переделку
-            "continue": END,  # Переход к следующему агенту
-            "max_retries": END  # Если превышен лимит, идём дальше
+            "continue": "indexer",  # Переход к следующему агенту
+            "max_retries": "indexer"  # Если превышен лимит, идём дальше
         }
     )
 
@@ -189,12 +200,12 @@ def create_multi_agent_graph(auth_key: str):
         should_continue_or_revise,
         {
             "revise": "summariser",  # Возврат на переделку
-            "continue": END,  # Переход к следующему агенту
-            "max_retries": END  # Если превышен лимит, идём дальше
+            "continue": "indexer",  # Переход к следующему агенту
+            "max_retries": "indexer"  # Если превышен лимит, идём дальше
         }
     )
 
-
+    workflow.add_edge("indexer", END)
 
     # Компилируем граф
     print("🔧 Компиляция графа...")
@@ -205,8 +216,9 @@ def create_multi_agent_graph(auth_key: str):
 
 
 if __name__ == "__main__":
-    AUTH_KEY = "YOUR_KEY"
-    
+    AUTH_KEY = os.getenv("AUTH_KEY")
+    print(f"Auth Key loaded: {AUTH_KEY[:20]}..." if AUTH_KEY else "❌ Auth Key NOT loaded")
+
     graph = create_multi_agent_graph(AUTH_KEY)
 
     initial_state = {

@@ -5,6 +5,7 @@ Flask API Server для обработки научных статей
 
 import os
 from dotenv import load_dotenv
+# from pygments.lexers.robotframework import normalize
 
 # ЗАГРУЗКА ПЕРЕМЕННЫХ ОКРУЖЕНИЯ - САМОЕ НАЧАЛО!
 load_dotenv()
@@ -17,6 +18,7 @@ import tempfile
 import sys
 import traceback
 from datetime import datetime
+from database import init_db, save_article, get_all_articles
 
 # Добавляем путь к агентной системе
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'agent_system'))
@@ -24,11 +26,14 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'agent_system'))
 try:
     from agent_system.graph_orchestrator import create_multi_agent_graph
 except ImportError as e:
-    print(f"⚠️  Ошибка импорта: {e}")
+    print(f"⚠️ Ошибка импорта: {e}")
     print("Убедитесь, что папка agent_system/ существует и содержит graph_orchestrator.py")
 
 app = Flask(__name__)
 CORS(app)
+
+# Инициализация БД при запуске
+init_db()
 
 # ========== КОНФИГУРАЦИЯ ==========
 UPLOAD_FOLDER = 'uploads'
@@ -37,22 +42,19 @@ ALLOWED_EXTENSIONS = {'pdf', 'txt'}
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# GigaChat Authorization Key - ПОЛУЧАЕМ ИЗ .env или используем значение по умолчанию
-GIGACHAT_AUTH_KEY = os.getenv('GIGACHAT_AUTH_KEY', 'YOUR_KEY')
+# GigaChat Authorization Key - ПОЛУЧАЕМ ИЗ .env
+GIGACHAT_AUTH_KEY = os.getenv('GIGACHAT_AUTH_KEY', '')
 
-if not GIGACHAT_AUTH_KEY or GIGACHAT_AUTH_KEY == 'YOUR_GIGACHAT_AUTH_KEY_HERE':
-    print("⚠️  ВНИМАНИЕ: Используется значение GIGACHAT_AUTH_KEY по умолчанию!")
-    GIGACHAT_AUTH_KEY = 'YOUR_KEY'
+if not GIGACHAT_AUTH_KEY:
+    print("⚠️ ВНИМАНИЕ: GIGACHAT_AUTH_KEY не найден в .env!")
 else:
     print("✅ GigaChat Auth Key: успешно загружен из .env")
-
 
 # ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
 
 def allowed_file(filename: str) -> bool:
     """Проверка расширения файла."""
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
 
 def extract_text_from_pdf(pdf_path: str) -> str:
     """
@@ -80,14 +82,13 @@ def extract_text_from_pdf(pdf_path: str) -> str:
                     text += page_text + "\n"
                     print(f"   ✓ Страница {page_num}/{total_pages}")
                 except Exception as e:
-                    print(f"   ⚠️  Ошибка на странице {page_num}: {str(e)}")
+                    print(f"   ⚠️ Ошибка на странице {page_num}: {str(e)}")
                     continue
 
         print(f"✅ PDF успешно обработан ({len(text)} символов)")
         return text
     except Exception as e:
         raise Exception(f"Ошибка чтения PDF: {str(e)}")
-
 
 def extract_text_from_txt(txt_path: str) -> str:
     """
@@ -111,7 +112,6 @@ def extract_text_from_txt(txt_path: str) -> str:
     except Exception as e:
         raise Exception(f"Ошибка чтения TXT: {str(e)}")
 
-
 def sanitize_text(text: str, max_length: int = 50000) -> str:
     """
     Очищает и ограничивает длину текста.
@@ -129,11 +129,10 @@ def sanitize_text(text: str, max_length: int = 50000) -> str:
 
     # Ограничиваем длину
     if len(text) > max_length:
-        print(f"⚠️  Текст обрезан с {len(text)} до {max_length} символов")
+        print(f"⚠️ Текст обрезан с {len(text)} до {max_length} символов")
         text = text[:max_length]
 
     return text.strip()
-
 
 # ========== ОСНОВНЫЕ ЭНДПОИНТЫ ==========
 
@@ -150,9 +149,8 @@ def health_check():
         "service": "Article Processing API",
         "version": "1.0",
         "timestamp": datetime.now().isoformat(),
-        "gigachat_configured": GIGACHAT_AUTH_KEY == 'YOUR_KEY'
+        "gigachat_configured": bool(GIGACHAT_AUTH_KEY)
     }), 200
-
 
 @app.route('/process_article', methods=['POST'])
 def process_article():
@@ -171,7 +169,7 @@ def process_article():
         print("=" * 80)
 
         # ========== ЭТАП 1: ПРОВЕРКА И СОХРАНЕНИЕ ФАЙЛА ==========
-        print("\n[1/6] Проверка файла...")
+        print("\n[1/7] Проверка файла...")
 
         if 'pdf' not in request.files:
             return jsonify({
@@ -210,8 +208,7 @@ def process_article():
         print(f"✅ Файл сохранён: {file.filename} ({file_size / 1024:.2f} KB)")
 
         # ========== ЭТАП 2: ИЗВЛЕЧЕНИЕ ТЕКСТА ==========
-        print("\n[2/6] Извлечение текста из файла...")
-
+        print("\n[2/7] Извлечение текста из файла...")
         file_type = "PDF" if file.filename.lower().endswith('.pdf') else "TXT"
 
         try:
@@ -236,9 +233,9 @@ def process_article():
         print(f"✅ Текст готов к обработке ({len(article_text)} символов)")
 
         # ========== ЭТАП 3: ИНИЦИАЛИЗАЦИЯ ГРАФА ==========
-        print("\n[3/6] Инициализация агентной системы...")
+        print("\n[3/7] Инициализация агентной системы...")
 
-        if not GIGACHAT_AUTH_KEY or GIGACHAT_AUTH_KEY == 'YOUR_GIGACHAT_AUTH_KEY_HERE':
+        if not GIGACHAT_AUTH_KEY:
             return jsonify({
                 "status": "error",
                 "message": "GigaChat Auth Key не установлен. Установите переменную окружения GIGACHAT_AUTH_KEY"
@@ -255,25 +252,30 @@ def process_article():
             }), 500
 
         # ========== ЭТАП 4: ПОДГОТОВКА НАЧАЛЬНОГО СОСТОЯНИЯ ==========
-        print("\n[4/6] Подготовка начального состояния...")
+        print("\n[4/7] Подготовка начального состояния...")
 
         initial_state = {
-            "article_url": "",
             "article_text": article_text,
             "rubric_result_rubricator": "",
             "rubric_result_keyword": "",
             "rubric_result_normal": "",
             "rubric_result_summariser": "",
-            "rubric_result_kritik": "",
             "critique": "",
+            "critique_key": "",
+            "critique_sum": "",
+            "critique_nor": "",
             "revision_count": 0,
+            "revision_count_key": 0,
+            "revision_count_sum": 0,
+            "revision_count_nor": 0,
+            "indexed_data": "",
             "status": ["started", "text_extracted"]
         }
 
         print("✅ Начальное состояние готово")
 
         # ========== ЭТАП 5: ЗАПУСК ГРАФА ==========
-        print("\n[5/6] Запуск обработки агентной системой...")
+        print("\n[5/7] Запуск обработки агентной системой...")
         print("-" * 80)
 
         try:
@@ -288,8 +290,25 @@ def process_article():
                 "message": f"Ошибка обработки графа: {str(e)}"
             }), 500
 
-        # ========== ЭТАП 6: ФОРМИРОВАНИЕ РЕЗУЛЬТАТОВ ==========
-        print("\n[6/6] Формирование результатов...")
+        # ========== ЭТАП 6: СОХРАНЕНИЕ В БД ==========
+        print("\n[6/7] Сохранение в базу данных...")
+
+        try:
+            data = json.loads(final_state.get("indexed_data", "{}"))
+            article_id = save_article(
+                article_text=data["article_text"],
+                rubric=data.get("rubric", ""),
+                keywords=data.get("keywords", ""),
+                summary=data.get("summary", ""),
+                normalized=data.get("normalized", "")
+            )
+            print(f"✅ Сохранено в БД: ID {article_id}")
+        except Exception as e:
+            print(f"⚠️ Ошибка сохранения в БД: {e}")
+            article_id = None
+
+        # ========== ЭТАП 7: ФОРМИРОВАНИЕ РЕЗУЛЬТАТОВ ==========
+        print("\n[7/7] Формирование результатов...")
 
         result = {
             "status": "success",
@@ -297,6 +316,7 @@ def process_article():
             "file_type": file_type,
             "processing_time": "~1-3 минуты",
             "timestamp": datetime.now().isoformat(),
+            "db_id": article_id,
             "results": {
                 "rubrics": final_state.get("rubric_result_rubricator", "").strip(),
                 "keywords": final_state.get("rubric_result_keyword", "").strip(),
@@ -326,6 +346,21 @@ def process_article():
             "message": f"Внутренняя ошибка сервера: {str(e)}"
         }), 500
 
+@app.route('/articles', methods=['GET'])
+def list_articles():
+    """Список всех статей из БД."""
+    try:
+        articles = get_all_articles()
+        return jsonify({
+            "status": "success",
+            "count": len(articles),
+            "articles": articles
+        }), 200
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
 
 @app.route('/status', methods=['GET'])
 def status():
@@ -334,10 +369,9 @@ def status():
         "server_status": "running",
         "uploads_folder": UPLOAD_FOLDER,
         "upload_count": len(os.listdir(UPLOAD_FOLDER)),
-        "gigachat_available": GIGACHAT_AUTH_KEY == 'YOUR_KEY',
+        "gigachat_available": bool(GIGACHAT_AUTH_KEY),
         "timestamp": datetime.now().isoformat()
     }), 200
-
 
 # ========== ERROR HANDLERS ==========
 
@@ -349,7 +383,6 @@ def request_entity_too_large(error):
         "message": "Файл слишком большой. Максимум: 50 МБ"
     }), 413
 
-
 @app.errorhandler(405)
 def method_not_allowed(error):
     """Обработка неправильного метода."""
@@ -357,7 +390,6 @@ def method_not_allowed(error):
         "status": "error",
         "message": "Метод не разрешён"
     }), 405
-
 
 @app.errorhandler(404)
 def not_found(error):
@@ -367,7 +399,6 @@ def not_found(error):
         "message": "Маршрут не найден"
     }), 404
 
-
 # ========== ЗАПУСК ПРИЛОЖЕНИЯ ==========
 
 if __name__ == '__main__':
@@ -375,9 +406,9 @@ if __name__ == '__main__':
     print("🚀 ЗАПУСК API СЕРВЕРА")
     print("=" * 80)
     print(f"📍 Адрес: http://localhost:5001")
-    print(
-        f"📝 GigaChat Auth Key: {'✅ Установлен' if GIGACHAT_AUTH_KEY == 'YOUR_KEY' else '⚠️  ИСПОЛЬЗУЕТСЯ ЗНАЧЕНИЕ ПО УМОЛЧАНИЮ'}")
+    print(f"📝 GigaChat Auth Key: {'✅ Установлен' if GIGACHAT_AUTH_KEY else '⚠️ НЕ УСТАНОВЛЕН'}")
     print(f"📂 Папка загрузок: {UPLOAD_FOLDER}")
+    print(f"💾 База данных: articles.db")
     print("=" * 80 + "\n")
 
     app.run(
