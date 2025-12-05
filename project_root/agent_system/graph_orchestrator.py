@@ -67,7 +67,7 @@ def saferun(func, state: dict):
     """Безопасное выполнение функции агента с повторами."""
     while True:
         try:
-            time.sleep(10)
+            time.sleep(5)
             return func(state)
         except Exception as e:
             print(f"⚠️  Ошибка в saferun: {e}")

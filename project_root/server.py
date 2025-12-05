@@ -17,8 +17,11 @@ import PyPDF2
 import tempfile
 import sys
 import traceback
+# from datetime import datetime
+# from database import init_db, save_article, get_all_articles
+from mcp_client import save_article_via_mcp
 from datetime import datetime
-from database import init_db, save_article, get_all_articles
+
 
 # Добавляем путь к агентной системе
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'agent_system'))
@@ -33,7 +36,7 @@ app = Flask(__name__)
 CORS(app)
 
 # Инициализация БД при запуске
-init_db()
+# init_db()
 
 # ========== КОНФИГУРАЦИЯ ==========
 UPLOAD_FOLDER = 'uploads'
@@ -290,21 +293,29 @@ def process_article():
                 "message": f"Ошибка обработки графа: {str(e)}"
             }), 500
 
-        # ========== ЭТАП 6: СОХРАНЕНИЕ В БД ==========
-        print("\n[6/7] Сохранение в базу данных...")
+        # После: final_state = graph.invoke(initial_state)
+
+        # ========== ЭТАП 6: СОХРАНЕНИЕ В БД ЧЕРЕЗ MCP ==========
+        print("\n[6/7] Сохранение в БД через MCP...")
 
         try:
             data = json.loads(final_state.get("indexed_data", "{}"))
-            article_id = save_article(
-                article_text=data["article_text"],
+
+            article_id = save_article_via_mcp(
+                article_text=data.get("article_text", ""),  # ← ПЕРВЫЙ аргумент
                 rubric=data.get("rubric", ""),
                 keywords=data.get("keywords", ""),
                 summary=data.get("summary", ""),
-                normalized=data.get("normalized", "")
+                normalized_text=data.get("normalized", "")
             )
-            print(f"✅ Сохранено в БД: ID {article_id}")
+
+            if article_id:
+                print(f"✅ Сохранено через MCP: ID {article_id}")
+            else:
+                print("⚠️ Ошибка сохранения через MCP")
+
         except Exception as e:
-            print(f"⚠️ Ошибка сохранения в БД: {e}")
+            print(f"⚠️ Ошибка MCP: {e}")
             article_id = None
 
         # ========== ЭТАП 7: ФОРМИРОВАНИЕ РЕЗУЛЬТАТОВ ==========
