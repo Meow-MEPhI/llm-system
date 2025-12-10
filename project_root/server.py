@@ -383,6 +383,26 @@ def status():
         "gigachat_available": bool(GIGACHAT_AUTH_KEY),
         "timestamp": datetime.now().isoformat()
     }), 200
+@app.route('/articles', methods=['GET'])
+def get_articles():
+    """
+    Получить список всех обработанных статей из БД.
+    Returns:
+        JSON со списком статей
+    """
+    try:
+        from mcp_client import get_all_articles_via_mcp
+        articles = get_all_articles_via_mcp()
+        return jsonify({
+            "status": "success",
+            "articles": articles
+        }), 200
+    except Exception as e:
+        print(f"Ошибка получения статей: {str(e)}")
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
 
 # ========== ERROR HANDLERS ==========
 
