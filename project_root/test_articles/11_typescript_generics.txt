@@ -1,0 +1,15 @@
+TypeScript: обобщённые типы и продвинутое типизирование
+
+TypeScript добавляет статическую типизацию к JavaScript, предотвращая целые классы ошибок на этапе компиляции. Обобщённые типы (generics) позволяют писать переиспользуемый код, работающий с разными типами данных, сохраняя type safety.
+
+Простейший generic — функция identity<T>(arg: T): T возвращает аргумент того же типа. Вызов identity<string>("hello") конкретизирует T как string, вызов identity<number>(42) — как number. Компилятор выводит тип автоматически: identity("hello") неявно понимает T=string.
+
+Generic интерфейсы описывают структуры данных. Interface Array<T> в стандартной библиотеке позволяет Array<number>, Array<string>, Array<User>. Custom интерфейс Response<T> { data: T; status: number } типизирует API-ответы: Response<User[]> для списка пользователей, Response<Post> для поста.
+
+Ограничения (constraints) сужают допустимые типы. <T extends HasId> требует, чтобы T имел свойство id. Функция findById<T extends HasId>(items: T[], id: number) работает с любыми объектами с id. Это обеспечивает доступ к свойствам T без потери type safety.
+
+Utility types упрощают трансформации типов. Partial<T> делает все свойства опциональными, полезно для update-функций. Required<T> наоборот, делает обязательными. Pick<T, K> выбирает подмножество свойств. Omit<T, K> исключает. Record<K, V> создаёт объект с ключами типа K и значениями V.
+
+Mapped types итерируют по свойствам типа. Type ReadOnly<T> = { readonly [P in keyof T]: T[P] } делает все свойства read-only. Conditional types вида T extends U ? X : Y применяют логику. NonNullable<T> = T extends null | undefined ? never : T удаляет null.
+
+Template literal types конструируют строковые литералы. Type EventName<T> = `on${Capitalize<T>}` превращает "click" в "onClick". Это мощно для строго типизированных event handlers, CSS классов, API endpoints. Inference в conditional types извлекает типы из структур вроде Promise<T> → T.

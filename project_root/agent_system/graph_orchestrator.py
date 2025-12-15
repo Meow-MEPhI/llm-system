@@ -70,6 +70,8 @@ def saferun(func, state: dict):
             time.sleep(5)
             return func(state)
         except Exception as e:
+            if 429 in e:
+                continue
             print(f"⚠️  Ошибка в saferun: {e}")
             print(func)
             continue

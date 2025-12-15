@@ -1,0 +1,15 @@
+Современная CSS-вёрстка: Flexbox и Grid Layout
+
+CSS прошёл путь от таблиц и float'ов к мощным layout-системам Flexbox и Grid. Эти модули декларативно описывают расположение элементов, автоматически обрабатывая responsive дизайн и выравнивание без хаков.
+
+Flexbox — одномерная система для распределения элементов вдоль главной оси (row или column). display: flex на контейнере активирует flex-контекст. justify-content выравнивает по главной оси (flex-start, center, space-between), align-items — по поперечной. flex: 1 на дочернем элементе заставляет его занимать свободное пространство.
+
+Типичный use case — navbar с логотипом слева и меню справа. .navbar { display: flex; justify-content: space-between; } автоматически распределяет элементы по краям. flex-wrap: wrap переносит элементы на новую строку при нехватке места, реализуя responsive grid без media queries.
+
+CSS Grid — двумерная система для сложных layout'ов. grid-template-columns: 200px 1fr 1fr определяет колонки: фиксированная sidebar 200px, две равные колонки контента. grid-template-rows задаёт строки. gap: 20px устанавливает промежутки между ячейками.
+
+Grid areas именуют области layout'а. grid-template-areas: "header header" "sidebar main" "footer footer" визуально описывает структуру. Элементы размещаются grid-area: header. Это интуитивнее числовых координат для сложных дизайнов.
+
+Автоматическое размещение упрощает карточные сетки. grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)) создаёт адаптивную сетку: минимум 250px на карточку, максимум доступного пространства. auto-fill создаёт столько колонок, сколько влезает, auto-fit схлопывает пустые.
+
+Responsive дизайн комбинирует Flexbox/Grid с media queries. @media (max-width: 768px) { flex-direction: column; } переключает layout на мобильных. clamp(1rem, 2.5vw, 2rem) — fluid typography, масштабирующийся между минимумом и максимумом.

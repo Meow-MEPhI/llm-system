@@ -1,0 +1,236 @@
+{
+  "timestamp": "2025-12-16T00:47:22.114631",
+  "statistics": {
+    "total_runs": 15,
+    "successful_runs": 15,
+    "error_rate": 0.0,
+    "latency": {
+      "mean": 51.1290345509847,
+      "median": 51.59712505340576,
+      "p95": 57.43512797355652,
+      "p99": 57.43512797355652,
+      "min": 45.31296896934509,
+      "max": 57.43512797355652
+    },
+    "tokens": {
+      "mean": 2386.266666666667,
+      "median": 2492,
+      "total": 35794,
+      "min": 2134,
+      "max": 2578
+    },
+    "errors": []
+  },
+  "runs": [
+    {
+      "article_id": 1,
+      "filename": "01_python_async.txt",
+      "title": "Асинхронное программирование в Python: asyncio и многопоточность",
+      "status": "success",
+      "latency": 47.48759484291077,
+      "total_tokens": 2165,
+      "revision_count": 1,
+      "results": {
+        "rubric": "I. Введение  \n   - 1. Актуальность асинхронного программирования  \n   - 2. Преимущества использовани",
+        "keywords": "асинхронное_программирование | прямое | 0.95  \nasyncio | прямое | 0.90  \nмногопоточность | косвенное",
+        "summary": "## Метаданные\n- Название: Асинхронное программирование в Python: asyncio и многопоточность\n- Авторы:"
+      }
+    },
+    {
+      "article_id": 2,
+      "filename": "02_git_best_practices.txt",
+      "title": "Git workflow: лучшие практики версионного контроля в командной разработке",
+      "status": "success",
+      "latency": 48.9586181640625,
+      "total_tokens": 2260,
+      "revision_count": 1,
+      "results": {
+        "rubric": "I. Введение  \n   - Проблема хаоса в контроле версий  \n   - Необходимость согласованного workflow  \n\n",
+        "keywords": "git flow | прямое | 0.95  \ngithub flow | прямое | 0.90  \ncommit message | прямое | 0.85  \nrebase | к",
+        "summary": "## Метаданные\n- Название: Git Workflow: Лучшие Практики Версионного Контроля В Командной Разработке\n"
+      }
+    },
+    {
+      "article_id": 3,
+      "filename": "03_docker_containers.txt",
+      "title": "Контейнеризация приложений: Docker и оркестрация микросервисов",
+      "status": "success",
+      "latency": 49.112732887268066,
+      "total_tokens": 2251,
+      "revision_count": 1,
+      "results": {
+        "rubric": "I. Введение в контейнеризацию приложений  \n   I.1 Определение контейнеризации  \n   I.2 Преимущества ",
+        "keywords": "docker | прямое | 0.95  \nkubernetes | прямое | 0.90  \ndockerfile | прямое | 0.85  \nконтейнеризация |",
+        "summary": "## Метаданные\n- Название: Не указано в тексте\n- Авторы: Не указаны в тексте\n- Основная область (теги"
+      }
+    },
+    {
+      "article_id": 4,
+      "filename": "04_react_hooks.txt",
+      "title": "React Hooks: функциональные компоненты и управление состоянием",
+      "status": "success",
+      "latency": 45.31296896934509,
+      "total_tokens": 2175,
+      "revision_count": 1,
+      "results": {
+        "rubric": "I. Что такое React Hooks?\n   A. Революция в разработке компонентов\n      1. Переход от классов к фун",
+        "keywords": "hooks | прямое | 1.00  \nreact | прямое | 0.95  \nusestate | прямое | 0.90  \nuseeffect | прямое | 0.85",
+        "summary": "## Метаданные (если найдены)\n\n- Название: React Hooks: Функциональные компоненты и управление состоя"
+      }
+    },
+    {
+      "article_id": 5,
+      "filename": "05_sql_optimization.txt",
+      "title": "Оптимизация SQL-запросов: индексы, планы выполнения и производительность баз данных",
+      "status": "success",
+      "latency": 57.43512797355652,
+      "total_tokens": 2517,
+      "revision_count": 1,
+      "results": {
+        "rubric": "## Рубрикация статьи:\n\n### 1. Оптимизация SQL-запросов  \n   - **1.1 Индексация**  \n     * 1.1.1 Стру",
+        "keywords": "индекс | прямое | 0.95  \nB-tree | косвенное | 0.90  \nWHERE | прямое | 0.85  \nJOIN | прямое | 0.80  \n",
+        "summary": "## Метаданные\n- Название: Оптимизация SQL-запросов: индексы, планы выполнения и производительность б"
+      }
+    },
+    {
+      "article_id": 6,
+      "filename": "06_rest_api_design.txt",
+      "title": "Проектирование RESTful API: принципы, версионирование и документация",
+      "status": "success",
+      "latency": 51.59712505340576,
+      "total_tokens": 2512,
+      "revision_count": 1,
+      "results": {
+        "rubric": "I. Основы проектирования RESTful API  \n   A. Архитектурный стиль REST  \n      1. Принципы REST архит",
+        "keywords": "версия | косвенное | 0.95\nметод | прямое | 0.90\nстатус-код | прямое | 0.85\nресурс | прямое | 0.80\nUR",
+        "summary": "## Метаданные\n- Название: Проектирование RESTful API: принципы, версионирование и документация\n- Авт"
+      }
+    },
+    {
+      "article_id": 7,
+      "filename": "07_linux_performance.txt",
+      "title": "Мониторинг производительности Linux: инструменты диагностики и оптимизации",
+      "status": "success",
+      "latency": 52.78431701660156,
+      "total_tokens": 2547,
+      "revision_count": 1,
+      "results": {
+        "rubric": "## Рубрикация статьи:\n\n### 1. Введение  \n   - Проблема мониторинга производительности  \n   - Цели ис",
+        "keywords": "использование_cpu | прямое | 0.90  \nнагрузка | косвенное | 0.85  \niowait | прямое | 0.80  \nus_user |",
+        "summary": "## Метаданные\n- Название: Мониторинг производительности Linux: инструменты диагностики и оптимизации"
+      }
+    },
+    {
+      "article_id": 8,
+      "filename": "08_machine_learning_datasets.txt",
+      "title": "Подготовка данных для машинного обучения: очистка, нормализация и feature engineering",
+      "status": "success",
+      "latency": 54.65168499946594,
+      "total_tokens": 2573,
+      "revision_count": 1,
+      "results": {
+        "rubric": "## Рубрикация статьи:\n\n### 1. Подготовка данных для машинного обучения  \n   - 1.1 Очистка данных  \n ",
+        "keywords": "данные | прямое | 0.95  \nподготовка данных | прямое | 0.90  \nмашинное обучение | косвенное | 0.85  \n",
+        "summary": "## Метаданные (если найдены)\nНазвание: Не указано\nАвторы: Не указаны\nОсновная область (теги): Обрабо"
+      }
+    },
+    {
+      "article_id": 9,
+      "filename": "09_webpack_bundlers.txt",
+      "title": "Сборщики модулей: Webpack, Vite и оптимизация фронтенд-приложений",
+      "status": "success",
+      "latency": 51.68299913406372,
+      "total_tokens": 2247,
+      "revision_count": 1,
+      "results": {
+        "rubric": "## Рубрикация статьи:\n\n### 1. Введение  \n   - Современные тенденции веб-разработки  \n   - Основные п",
+        "keywords": "cdn | косвенное | 0.80  \nwebpack | прямое | 0.95  \nvite | прямое | 0.90  \ncode-splitting | косвенное",
+        "summary": "## Метаданные\n- Название: Не указано в тексте\n- Авторы: Не указаны в тексте\n- Основная область (теги"
+      }
+    },
+    {
+      "article_id": 10,
+      "filename": "10_redis_caching.txt",
+      "title": "Кэширование с Redis: стратегии, структуры данных и производительность",
+      "status": "success",
+      "latency": 54.08702301979065,
+      "total_tokens": 2508,
+      "revision_count": 1,
+      "results": {
+        "rubric": "I. Введение  \n   - Кэширование с Redis: общая информация  \n\nII. Стратегии кэширования  \n   - Cache-a",
+        "keywords": "cache-aside-паттерн | прямое | 0.90  \nredis | прямое | 0.85  \npostgresql | косвенное | 0.80  \nget | ",
+        "summary": "## Метаданные\n- Название: Кэширование с Redis: стратегии, структуры данных и производительность\n- Ав"
+      }
+    },
+    {
+      "article_id": 11,
+      "filename": "11_typescript_generics.txt",
+      "title": "TypeScript: обобщённые типы и продвинутое типизирование",
+      "status": "success",
+      "latency": 52.37738823890686,
+      "total_tokens": 2570,
+      "revision_count": 1,
+      "results": {
+        "rubric": "I. Введение в TypeScript и обобщенные типы  \n   A. Преимущества статической типизации TypeScript над",
+        "keywords": "типизация      | прямое     | 0.95  \nTypeScript       | прямое     | 0.90  \nобобщённые типы  | прямо",
+        "summary": "## Метаданные\n- Название: TypeScript: обобщённые типы и продвинутое типизирование\n- Авторы: Не указа"
+      }
+    },
+    {
+      "article_id": 12,
+      "filename": "12_nginx_configuration.txt",
+      "title": "Конфигурация Nginx: reverse proxy, балансировка нагрузки и оптимизация",
+      "status": "success",
+      "latency": 48.35671401023865,
+      "total_tokens": 2492,
+      "revision_count": 1,
+      "results": {
+        "rubric": "I. Введение  \n   - 1.1. Обзор Nginx  \n   - 1.2. Преимущества Nginx перед другими серверами  \n   \nII.",
+        "keywords": "nginx | прямое | 0.95  \nreverse_proxy | прямое | 0.90  \nload_balancing | косвенное | 0.85  \nevent_dr",
+        "summary": "## Метаданные\n\n- Название: Не указано в тексте\n- Авторы: Не указаны\n- Основная область (теги): Nginx"
+      }
+    },
+    {
+      "article_id": 13,
+      "filename": "13_pytest_testing.txt",
+      "title": "Тестирование Python-приложений: pytest, fixtures и coverage",
+      "status": "success",
+      "latency": 49.13981485366821,
+      "total_tokens": 2578,
+      "revision_count": 1,
+      "results": {
+        "rubric": "I. Автоматизированное тестирование Python-приложений  \n   A. Преимущества фреймворка pytest  \n      ",
+        "keywords": "pytest|прямое|0.95\nfixtures|прямое|0.90\npytest.fixture|прямое|0.85\nscope|прямое|0.80\nparametrize|пря",
+        "summary": "## Метаданные\n- Название: Тестирование Python-приложений: pytest, fixtures и coverage\n- Авторы: Не у"
+      }
+    },
+    {
+      "article_id": 14,
+      "filename": "14_css_flexbox_grid.txt",
+      "title": "Современная CSS-вёрстка: Flexbox и Grid Layout",
+      "status": "success",
+      "latency": 53.40687298774719,
+      "total_tokens": 2265,
+      "revision_count": 1,
+      "results": {
+        "rubric": "# Рубрикация статьи:\n\n## 1. Введение в современные CSS-модули  \n   - 1.1 Что такое Flexbox?  \n   - 1",
+        "keywords": "grid-template-columns | прямое | 0.95  \ndisplay: flex | прямое | 0.90  \njustify-content | прямое | 0",
+        "summary": "## Метаданные (если найдены)\nНазвание: Современная CSS-вёрстка: Flexbox и Grid Layout  \nАвторы: Не у"
+      }
+    },
+    {
+      "article_id": 15,
+      "filename": "15_agile_scrum.txt",
+      "title": "Agile-методологии: Scrum, Kanban и управление разработкой",
+      "status": "success",
+      "latency": 50.544536113739014,
+      "total_tokens": 2134,
+      "revision_count": 1,
+      "results": {
+        "rubric": "I. Введение в Agile методологии  \n   - Революция управления проектами разработки ПО  \n   - Приоритет",
+        "keywords": "scrum | прямое | 0.95  \nkanban | прямое | 0.90  \nagile | косвенное | 0.85  \nwaterfall | косвенное | ",
+        "summary": "## Метаданные (если найдены)\n\n- Название: «Agile-методологии: Scrum, Kanban и управление разработкой"
+      }
+    }
+  ]
+}

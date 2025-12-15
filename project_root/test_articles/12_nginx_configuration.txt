@@ -1,0 +1,15 @@
+Конфигурация Nginx: reverse proxy, балансировка нагрузки и оптимизация
+
+Nginx — высокопроизводительный веб-сервер и reverse proxy, обрабатывающий десятки тысяч одновременных подключений с минимальным потреблением памяти. Event-driven архитектура превосходит Apache в конкурентности, делая Nginx стандартом для современных веб-стеков.
+
+Reverse proxy терминирует клиентские подключения и проксирует запросы к backend-серверам. Конфигурация location / { proxy_pass http://localhost:3000; } перенаправляет трафик на Node.js приложение. Nginx обрабатывает SSL, сжатие, статику, освобождая приложение для бизнес-логики.
+
+Load balancing распределяет запросы между несколькими backend-серверами. Upstream блок определяет пул серверов: upstream app { server app1:3000; server app2:3000; server app3:3000; }. Алгоритм round-robin циклически перебирает серверы, least_conn направляет на наименее загруженный, ip_hash обеспечивает sticky sessions.
+
+Health checks исключают упавшие серверы из балансировки. Параметры max_fails=3 fail_timeout=30s временно блокируют сервер после трёх ошибок. Nginx Plus поддерживает активные health checks с кастомными HTTP-запросами. Open source версия полагается на пассивные проверки при обработке реальных запросов.
+
+Кэширование статики разгружает backend. proxy_cache_path /var/cache/nginx levels=1:2 keys_zone=my_cache:10m max_size=1g задаёт параметры кэша. proxy_cache my_cache в location включает кэширование. Заголовки Cache-Control и Expires контролируют TTL. Кэш-ключ по умолчанию — URL, настраивается proxy_cache_key.
+
+Gzip сжатие экономит трафик. gzip on; gzip_types text/css application/javascript; сжимает текстовые ресурсы на лету. Современные клиенты поддерживают Brotli, обеспечивающий лучшую компрессию. Rate limiting (limit_req_zone) защищает от DDoS, ограничивая запросы с IP.
+
+SSL/TLS termination снимает нагрузку шифрования с приложения. ssl_certificate и ssl_certificate_key указывают сертификаты Let's Encrypt. Современные протоколы TLSv1.2 и TLSv1.3 с secure ciphers защищают от атак. HTTP/2 multiplexing улучшает производительность, включается директивой listen 443 ssl http2.
